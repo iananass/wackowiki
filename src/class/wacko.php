@@ -64,7 +64,6 @@ class Wacko
 	public array $context			= [];		// page context, used for correct processing of inclusions
 	public $current_context			= 0;		// current context level
 
-	public $header_count			= 0;
 	public $section_count			= 0;
 	public $section_tag				= null;
 	public $comment_id				= null;
@@ -7737,8 +7736,8 @@ class Wacko
 			// #2. find all <hX id="h1249-1" class="heading"></hX> & guide them in subroutine
 			//	notice that complex regexp is copied & duplicated in formatter/paragrafica (subject to refactor)
 			$what = preg_replace_callback(
-				"!(<h(\d) id=\"(h\d+-\d+)\" class=\"heading\">(.*?)" .
-					"<a class=\"self-link\" href=\"#h\d+-\d+\"></a>)!i",
+				"!(<h(\d) id=\"(h[a-z\d]+)\" class=\"heading\">(.*?)" .
+					"<a class=\"self-link\" href=\"#h[a-z\d]+\"></a>)!i",
 				[&$this, 'numerate_toc_callback_toc'], $what);
 		}
 

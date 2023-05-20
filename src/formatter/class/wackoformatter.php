@@ -21,6 +21,7 @@ class WackoFormatter
 	public bool $intable			= false;
 	public bool $intable_br			= false;
 	public int $cols				= 0;
+	private array $used_header_ids  = [];
 	public string $LONG_REGEX;
 	public string $MIDDLE_REGEX;
 	public string $PRE_REGEX;
@@ -1026,13 +1027,25 @@ class WackoFormatter
 			'</sup>';
 	}
 
+	private function generate_header_id($header_text): string
+	{
+		$header_id = substr(hash('md5', $header_text), 0, 8);
+
+		if (array_key_exists($header_id, $this->used_header_ids))
+		{
+				return $this->generate_header_id($header_text . '_');
+		}
+		$this->used_header_ids[$header_id] = '.';
+
+		return $header_id;
+	}
+
 	public function headers(array $matches, $wacko, array $callback): string
 	{
 		$h_level	= substr_count($matches[1], '=') - 1;
 		$result		= $this->indent_close();
 		$this->br	= false;
-		$wacko->header_count++;
-		$header_id	= 'h' . $this->page_id . '-' . $wacko->header_count;
+		$header_id  = $this->generate_header_id($matches[2]);
 
 		if ($wacko->db->section_edit
 			&& $h_level > 1

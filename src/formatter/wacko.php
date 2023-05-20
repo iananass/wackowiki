@@ -10,7 +10,6 @@ $text	= "\u{2592}\n" . $text . "\n";
 
 $parser	= new WackoFormatter($this);
 
-$this->header_count		= 0;
 $this->section_count	= 0;
 
 $text	= preg_replace_callback($parser->PRE_REGEX, [&$parser, 'wacko_preprocess'], $text);

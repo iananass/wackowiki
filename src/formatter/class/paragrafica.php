@@ -286,7 +286,7 @@ class Paragrafica
 				// [2] = depth,
 				// [3] = h-id,
 				// [4] = name
-				"(<h(\d) id=\"(h\d+-\d+)\" class=\"heading\">(.*?)<a class=\"self-link\" href=\"#h\d+-\d+\"></a>.*?</h\\2>)" .
+				"(<h(\d) id=\"([a-z\d]+)\" class=\"heading\">(.*?)<a class=\"self-link\" href=\"#[a-z\d]+\"></a>.*?</h\\2>)" .
 					"|" .
 				// [6] = p-id
 				"(<p id=\"(p\d+-\d+)\" class=\"auto\">)" .
