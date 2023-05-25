@@ -1,0 +1,28 @@
+version: "3"
+services:
+  wacko:
+    image: wackowiki:latest
+    container_name: wacko
+    volumes:
+      - ./wacko:/var/www/html
+    ports:
+      - 8082:80
+
+  db:
+    image: mariadb
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      MARIADB_USER: "wacko"
+      MARIADB_PASSWORD: "SomePassword__-Example"
+      MARIADB_DATABASE: "wacko"
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data: 
+
+#qwe
+#123456789qwerty
