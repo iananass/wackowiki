@@ -674,6 +674,11 @@ $wacko_translation = [
 	'NoWatchers'				=> 'There are no watchers for %1',
 	'NotOwnerToViewWatchers'	=> 'You are not the owner of this page and you can\'t see list of watchers for it.',
 
+	// thumbnail
+	'TbnError'					=> 'Hiba a bélyegkép létrehozásakor: %1',
+	'TbnImageAreaTooBig'		=> 'Azon fájlok, amelyek nagyobbak mint %1',
+	'TbnImageMissing'			=> 'Úgy tűnik, hogy a fájl hiányzik: %1',
+
 	// admin_recovery action
 	'GenerateRecoveryHash'		=> 'Generálja a jelszó hash-ot a <code>recovery_password</code> számára',
 
@@ -777,7 +782,7 @@ $wacko_translation = [
 	'ReplaceTextNoDifference'	=> 'Nincs különbség a csereszöveg és a célszöveg között.',
 	'ReplaceTextNoOption'		=> 'Ki kell választanod legalább egyet a csere lehetőségek közül.',
 	'ReplaceTextPagesEdit'		=> '%1 cseréje %2 kifejezésre a következő %3 lapok szövegében:',
-	"ReplaceTextTitlesEdit"		=> '%1 helyettesít %2-vel a következő %3 oldal címében:',
+	'ReplaceTextTitlesEdit'		=> '%1 helyettesít %2-vel a következő %3 oldal címében:',
 	'ReplaceTextReplace'		=> 'Csere',
 	'ReplaceTextSuccess'		=> '%1 cseréje %3 lapon erre: %2.',
 	'ReplaceTextNoMatch'		=> 'Egy lap sem tartalmazza a(z) %1 szöveget.',
@@ -1241,11 +1246,13 @@ $wacko_translation = [
 	'InAYear'		=> 'in a year',
 	'InYears'		=> 'in %1 years',
 
-	// binary multiples
-	'DecimalPrefixShort'		=> ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-	'DecimalPrefixLong'			=> ['Byte', 'Kilobyte', 'Megabyte', 'Gigabyte', 'Terabyte', 'Petabyte', 'Exabyte', 'Zettabyte', 'Yottabyte'],
-	'BinaryPrefixShort'			=> ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
-	'BinaryPrefixLong'			=> ['Byte', 'Kibibyte', 'Mebibyte', 'Gibibyte', 'Tebibyte', 'Pebibyte', 'Exbibyte', 'Zebibyte', 'Yobibyte'],
+	// norm multiples
+	'ByteDecimalShort'			=> ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+	'ByteDecimalLong'			=> ['Byte', 'Kilobyte', 'Megabyte', 'Gigabyte', 'Terabyte', 'Petabyte', 'Exabyte', 'Zettabyte', 'Yottabyte'],
+	'ByteBinaryShort'			=> ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
+	'ByteBinaryLong'			=> ['Byte', 'Kibibyte', 'Mebibyte', 'Gibibyte', 'Tebibyte', 'Pebibyte', 'Exbibyte', 'Zebibyte', 'Yobibyte'],
+	'PixelDecimalShort'			=> ['px', 'KP', 'MP', 'GP', 'TP', 'PP', 'EP', 'ZP', 'YP'],
+	'PixelDecimalLong'			=> ['pixel', 'Kpx', 'Mpx', 'Gpx', 'Tpx', 'Ppx', 'Epx', 'Zpx', 'Ypx'],
 
 	// loading error
 	'UnknownAction'				=> 'Unknown action',

@@ -5,23 +5,28 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
-/* USAGE:
-	{{search
-		[phrase="Term"]
-		[page="PageName"]
-		[topic=1]
-		[options=1]
-		[lang="en"]
-		[form=1]
-		[nomark=1]
-		[style=one of ("br","ul","ol","comma") ]
-		[scope=one of ("pages", "all")]
-	}}
-*/
-
 // TODO:
 // - too much loose ends, read thoroughly and refactor
 // - search also for attachments
+
+$info = <<<EOD
+Description:
+	Searches the content of the Wiki.
+
+Usage:
+	{{search}}
+
+Options:
+	[phrase="Term"]
+	[page="PageName"]
+	[topic=1]
+	[options=1]
+	[lang="en"]
+	[form=1]
+	[nomark=1]
+	[style=one of ("br","ul","ol","comma") ]
+	[scope=one of ("pages", "all")]
+EOD;
 
 $full_text_search = function ($phrase, $tag, $limit, $scope, $filter = [], $deleted = false)
 {
@@ -32,41 +37,41 @@ $full_text_search = function ($phrase, $tag, $limit, $scope, $filter = [], $dele
 
 	$selector =
 		($category_id
-			? "LEFT JOIN " . $prefix . "category_assignment ca ON (a.page_id = ca.object_id) "
-			: "") .
+			? 'LEFT JOIN ' . $prefix . 'category_assignment ca ON (a.page_id = ca.object_id) '
+			: '') .
 		($tag
-			? "LEFT JOIN " . $prefix . "page b ON (a.comment_on_id = b.page_id) "
-			: "") .
-		"WHERE ((MATCH
-					(a.body) AGAINST("						. $this->db->q($phrase) . " IN BOOLEAN MODE) " .
-					"OR lower(a.title) LIKE lower("			. $this->db->q('%' . $phrase . '%') . ") " .
-					"OR lower(a.tag) LIKE lower("			. $this->db->q('%' . $phrase . '%') . ") " .
-					"OR lower(a.description) LIKE lower("	. $this->db->q('%' . $phrase . '%') . ") " .
-					"OR lower(a.keywords) LIKE lower("		. $this->db->q('%' . $phrase . '%') . ") " .
-				") " .
+			? 'LEFT JOIN ' . $prefix . 'page b ON (a.comment_on_id = b.page_id) '
+			: '') .
+		'WHERE ((MATCH
+					(a.body) AGAINST(' . $this->db->q($phrase) . ' IN BOOLEAN MODE) ' .
+					'OR lower(a.title) LIKE lower(' . $this->db->q('%' . $phrase . '%') . ') ' .
+					'OR lower(a.tag) LIKE lower(' . $this->db->q('%' . $phrase . '%') . ') ' .
+					'OR lower(a.description) LIKE lower(' . $this->db->q('%' . $phrase . '%') . ') ' .
+					'OR lower(a.keywords) LIKE lower(' . $this->db->q('%' . $phrase . '%') . ') ' .
+		') ' .
 			($tag
-				? "AND (a.tag LIKE " . $this->db->q($tag . '/%') . " " .
-				  "OR b.tag LIKE " . $this->db->q($tag . '/%') . ") "
-				: "") .
+				? 'AND (a.tag LIKE ' . $this->db->q($tag . '/%') . ' ' .
+				'OR b.tag LIKE ' . $this->db->q($tag . '/%') . ') '
+				: '') .
 			($scope
-				? "AND a.comment_on_id = 0 "
-				: "") .
+				? 'AND a.comment_on_id = 0 '
+				: '') .
 			($lang
-				? "AND a.page_lang = " . $this->db->q($lang) . " "
-				: "") .
+				? 'AND a.page_lang = ' . $this->db->q($lang) . ' '
+				: '') .
 			($category_id
-				? "AND ca.category_id = " . (int) $category_id . " "
-				: "") .
+				? 'AND ca.category_id = ' . (int) $category_id . ' '
+				: '') .
 			($deleted
-				? ""
+				? ''
 				: ($tag
-					? "AND (a.deleted <> 1 OR b.deleted <> 1) "
-					: "AND a.deleted <> 1 ")) .
-			" )";
+					? 'AND (a.deleted <> 1 OR b.deleted <> 1) '
+					: 'AND a.deleted <> 1 ')) .
+		' )';
 
 	$count = $this->db->load_single(
-		"SELECT COUNT(a.page_id) AS n " .
-		"FROM " . $prefix . "page a " .
+		'SELECT COUNT(a.page_id) AS n ' .
+		'FROM ' . $prefix . 'page a ' .
 		$selector, true);
 
 	$pagination = $this->pagination($count['n'], $limit, 'p', ['phrase' => $phrase]
@@ -74,14 +79,14 @@ $full_text_search = function ($phrase, $tag, $limit, $scope, $filter = [], $dele
 
 	// load search results
 	$results = $this->db->load_all(
-		"SELECT a.page_id, a.owner_id, a.user_id, a.tag, a.title, a.created, a.modified, a.body, a.comment_on_id, a.page_lang, a.page_size, a.comments,
-			MATCH(a.body) AGAINST(" . $this->db->q($phrase) . " IN BOOLEAN MODE) AS score,
-			u.user_name, o.user_name as owner_name " .
-		"FROM " . $prefix . "page a " .
-			"LEFT JOIN " . $prefix . "user u ON (a.user_id = u.user_id) " .
-			"LEFT JOIN " . $prefix . "user o ON (a.owner_id = o.user_id) " .
+		'SELECT a.page_id, a.owner_id, a.user_id, a.tag, a.title, a.created, a.modified, a.body, a.comment_on_id, a.page_lang, a.page_size, a.comments,
+			MATCH(a.body) AGAINST(' . $this->db->q($phrase) . ' IN BOOLEAN MODE) AS score,
+			u.user_name, o.user_name as owner_name ' .
+		'FROM ' . $prefix . 'page a ' .
+			'LEFT JOIN ' . $prefix . 'user u ON (a.user_id = u.user_id) ' .
+			'LEFT JOIN ' . $prefix . 'user o ON (a.owner_id = o.user_id) ' .
 		$selector .
-		"ORDER BY score DESC " .
+		'ORDER BY score DESC ' .
 		$pagination['limit']);
 
 	foreach ($results as $result)
@@ -109,48 +114,48 @@ $tag_search = function ($phrase, $tag, $limit, $scope, $filter = [], $deleted = 
 
 	$selector =
 		($category_id
-			? "LEFT JOIN " . $prefix . "category_assignment ca ON (a.page_id = ca.object_id) "
-			: "") .
+			? 'LEFT JOIN ' . $prefix . 'category_assignment ca ON (a.page_id = ca.object_id) '
+			: '') .
 		($tag
-			? "LEFT JOIN " . $prefix . "page b ON (a.comment_on_id = b.page_id) "
-			: "") .
-		"WHERE ( lower(a.tag) LIKE binary lower("	. $this->db->q('%' . $phrase . '%') . ") " .
-			"OR lower(a.title) LIKE lower("			. $this->db->q('%' . $phrase . '%') . ")) " .
+			? 'LEFT JOIN ' . $prefix . 'page b ON (a.comment_on_id = b.page_id) '
+			: '') .
+		'WHERE ( lower(a.tag) LIKE binary lower('	. $this->db->q('%' . $phrase . '%') . ') ' .
+		'OR lower(a.title) LIKE lower('			. $this->db->q('%' . $phrase . '%') . ')) ' .
 		($tag
-			? "AND (a.tag LIKE "	. $this->db->q($tag . '/%') . " " .
-			  "OR b.tag LIKE "		. $this->db->q($tag . '/%') . ") "
-			: "") .
+			? 'AND (a.tag LIKE '	. $this->db->q($tag . '/%') . ' ' .
+			'OR b.tag LIKE '	. $this->db->q($tag . '/%') . ') '
+			: '') .
 		($scope
-			? "AND a.comment_on_id = 0 "
-			: "") .
+			? 'AND a.comment_on_id = 0 '
+			: '') .
 		($lang
-			? "AND a.page_lang = " . $this->db->q($lang) . " "
-			: "") .
+			? 'AND a.page_lang = ' . $this->db->q($lang) . ' '
+			: '') .
 		($category_id
-			? "AND ca.category_id = " . (int) $category_id . " "
-			: "") .
+			? 'AND ca.category_id = ' . (int) $category_id . ' '
+			: '') .
 		($deleted
-			? ""
+			? ''
 			: ($tag
-				? "AND (a.deleted <> 1 OR b.deleted <> 1) "
-				: "AND a.deleted <> 1 "));
+				? 'AND (a.deleted <> 1 OR b.deleted <> 1) '
+				: 'AND a.deleted <> 1 '));
 
 	$count = $this->db->load_single(
-		"SELECT COUNT(a.page_id) AS n " .
-		"FROM " . $prefix . "page a " .
+		'SELECT COUNT(a.page_id) AS n ' .
+		'FROM ' . $prefix . 'page a ' .
 		$selector, true);
 
 	$pagination = $this->pagination($count['n'], $limit, 'p', ['phrase' => $phrase, 'lang' => $lang]);
 
 	// load search results
 	$results = $this->db->load_all(
-		"SELECT a.page_id, a.owner_id, a.user_id, a.tag, a.title, a.created, a.modified, a.comment_on_id, a.page_lang, a.page_size, comments,
-			u.user_name, o.user_name as owner_name " .
-		"FROM " . $prefix . "page a " .
-			"LEFT JOIN " . $prefix . "user u ON (a.user_id = u.user_id) " .
-			"LEFT JOIN " . $prefix . "user o ON (a.owner_id = o.user_id) " .
+		'SELECT a.page_id, a.owner_id, a.user_id, a.tag, a.title, a.created, a.modified, a.comment_on_id, a.page_lang, a.page_size, comments,
+			u.user_name, o.user_name as owner_name ' .
+		'FROM ' . $prefix . 'page a ' .
+			'LEFT JOIN ' . $prefix . 'user u ON (a.user_id = u.user_id) ' .
+			'LEFT JOIN ' . $prefix . 'user o ON (a.owner_id = o.user_id) ' .
 		$selector .
-		"ORDER BY a.tag COLLATE utf8mb4_unicode_520_ci " .
+		'ORDER BY a.tag COLLATE utf8mb4_unicode_520_ci ' .
 		$pagination['limit']);
 
 	return [$results, $pagination, $count['n']];
@@ -281,6 +286,7 @@ $highlight_this = function ($text, $words)
 // --------------------------------------------------------------------------------
 
 // set defaults
+$help		??= 0;
 $lang		??= '';
 $max		??= 10;	// (null) 50 -> 10 overwrites system default value!
 $nomark		??= 0;
@@ -292,6 +298,12 @@ $scope		??= '';
 $style		??= '';
 $title		??= 1;
 $topic		??= 0;
+
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
 
 $lang		= (string) ($_GET['lang'] ?? $lang);
 

@@ -5,17 +5,27 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
-/* Shows image gallery
+/* gallery action:
  *
- * gallery action:
  * https://wackowiki.org/doc/Dev/PatchesHacks/Gallery
  * modify the script for your needs, please contribute your improvements
  *
  * requires PHP Thumb Library <https://github.com/PHPThumb/PHPThumb>
  * optional PhotoSwipe <https://photoswipe.com/>
  *
- * {{gallery
 
+TODO:
+	- add filter for categories cat="one,two"
+*/
+
+$info = <<<EOD
+Description:
+	Shows a image gallery.
+
+Usage:
+	{{gallery}}
+
+Options:
 	[page		= "page_tag"]	- call image from another page
 	[global		= 0|1]			- call global images
 	[perrow		= Number]		- Number of images per rows(default = 5)
@@ -28,27 +38,14 @@ if (!defined('IN_WACKO'))
 	[order		= "ext|name_desc|size|size_desc|time|time_desc"]
 	[owner		= "UserName"]
 	[max		= Number]
-}}
-
-TODO: config settings
-	- image_processing (bool)
-	- thumbnails (bool)
-	- add filter for categories cat="one,two"
-	- fall back if no JS or Image manipulation library is available or disabled
-*/
+EOD;
 
 // include PHP Thumbnailer (see autoload.conf)
-
-// loading parameters
-$file_id		= (int) ($_GET['file_id'] ?? null);
-$files			= [];
-$imgclass		= '';
-
-$thumb_width	= (int) $this->db->max_thumb_width;
 
 // set defaults
 $caption		??= 1;
 $global			??= 0;
+$help			??= 0;
 $max			??= 50;
 $nav_offset		??= 1;
 $nomark			??= 1;
@@ -61,8 +58,19 @@ $table			??= 1;
 $target			??= 0;
 $title			??= '';
 
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
+
+// loading parameters
+$file_id		= (int) ($_GET['file_id'] ?? null);
+$files			= [];
 $limit			= (int) $max;
 $images_row		= (int) $perrow;
+$imgclass		= '';
+$thumb_width	= (int) $this->db->max_thumb_width;
 
 // we're using a parameter token here to sort out multiple instances
 $param_token	= substr(hash('sha1', $global . $page . $caption . $target . $owner . $order . $max), 0, 8);
@@ -151,28 +159,28 @@ if ($can_view)
 	}
 
 	$selector =
-		"FROM " . $this->prefix . "file f " .
-			"INNER JOIN " . $this->prefix . "user u ON (f.user_id = u.user_id) " .
-			"LEFT JOIN " . $this->prefix . "page p ON (f.page_id = p.page_id) " .
+		'FROM ' . $this->prefix . 'file f ' .
+			'INNER JOIN ' . $this->prefix . 'user u ON (f.user_id = u.user_id) ' .
+			'LEFT JOIN ' . $this->prefix . 'page p ON (f.page_id = p.page_id) ' .
 		"WHERE f.page_id = '" . (int) ($global ? 0 : $file_page['page_id']) . "' " .
-			"AND f.picture_w <> 0 " .
-			"AND f.deleted <> 1 " .
+			'AND f.picture_w <> 0 ' .
+			'AND f.deleted <> 1 ' .
 		($owner
-			? "AND u.user_name = " . $this->db->q($owner) . " "
+			? 'AND u.user_name = ' . $this->db->q($owner) . ' '
 			: '');
 
 	// load only image files -> AND f.picture_w <> 0
 	$count = $this->db->load_single(
-		"SELECT COUNT(f.file_id) AS n " .
+		'SELECT COUNT(f.file_id) AS n ' .
 		$selector, true);
 
 	$pagination = $this->pagination($count['n'], $limit, $param_token);
 
 	// load files list
 	$files = $this->db->load_all(
-		"SELECT f.file_id, f.page_id, f.user_id, f.file_size, f.picture_w, f.picture_h, f.file_ext, f.file_lang, f.file_name, f.file_description, f.caption, f.created, u.user_name AS user, p.tag " .
+		'SELECT f.file_id, f.page_id, f.user_id, f.file_size, f.picture_w, f.picture_h, f.file_ext, f.file_lang, f.file_name, f.file_description, f.caption, f.created, u.user_name AS user, p.tag ' .
 		$selector .
-		"ORDER BY f." . $order_by . " " .
+		'ORDER BY f.' . $order_by . ' ' .
 		"LIMIT {$pagination['offset']}, {$limit}", true);
 
 	// Making a gallery
@@ -214,7 +222,10 @@ if ($can_view)
 				$file_name			= $file['file_name'];
 				$width				= '';
 				$height				= '';
-				$tbn_name			= $this->thumb_name($file['file_name'], $thumb_width, 0, $file['file_ext']);
+
+				// calculate relative height
+				[$width, $height]	= $this->calc_img_size($thumb_width, $thumb_width, $file['picture_w'], $file['picture_h']);
+				$tbn_name			= $this->thumb_name($file['file_name'], $width, $height, $file['file_ext']);
 
 				if ($caption == 1)
 				{
@@ -240,12 +251,9 @@ if ($can_view)
 				{
 					$src_path		= Ut::join_path(UPLOAD_LOCAL_DIR, '@' . $file_page['page_id'] . '@' . $file_name);
 					$tbn_path		= Ut::join_path(THUMB_LOCAL_DIR,  '@' . $file_page['page_id'] . '@' . $tbn_name);
-					$tbn_src		= $this->href('file', $source_page_tag, ['get' => $file_name, 'tbn' => $thumb_width . 'x' . '0']);
+					$tbn_src		= $this->href('file', $source_page_tag, ['get' => $file_name, 'tbn' => $width . 'x' . $height]);
 					$url			= $this->href('file', $source_page_tag, ['get' => $file_name]);
 				}
-
-				// calculate relative height
-				[$width, $height] = $this->get_img_width_height($thumb_width, 0, $file['picture_w'], $file['picture_h']);
 
 				$tpl->img	= '<img src="' . $tbn_src . '" ' .
 					'loading="lazy" ' .
@@ -256,7 +264,7 @@ if ($can_view)
 				// check for missing source image, we can't trust db record
 				if (!file_exists($tbn_path) && file_exists($src_path))
 				{
-					$this->create_thumbnail($tbn_path, $src_path, $width, $width);
+					$this->create_thumbnail($tbn_path, $src_path, $width, $height);
 				}
 
 				if ($table)

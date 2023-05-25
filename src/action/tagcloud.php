@@ -5,15 +5,21 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
-/* USAGE:
-	{{tagcloud
-		[page="cluster"]	- where to start counting from (defaults to current tag)
-		[lang='fi']			- categories language if necessary (defaults to current page lang)
-		[owner="UserName"]	- page owner
-		[sort="abc|number"]	- order categories alphabetically or by number ('abc'| 'number')
-		[nomark=1]			- display header and fieldset (1) or 0 (default))
-	}}
-*/
+$info = <<<EOD
+Description:
+	Creates a tag cloud.
+
+Usage:
+	{{tagcloud}}
+
+Options:
+	[page="cluster"]	- where to start counting from (defaults to current tag)
+	[lang='fi']			- categories language if necessary (defaults to current page lang)
+	[owner="UserName"]	- page owner
+	[sort="abc|number"]	- order categories alphabetically or by number ('abc'| 'number')
+	[nomark=1]			- display header and fieldset (1) or 0 (default))
+
+EOD;
 
 $print_tag_cloud = function ($tags, $method = '', $cluster = '') use (&$tpl)
 {
@@ -63,11 +69,18 @@ $print_tag_cloud = function ($tags, $method = '', $cluster = '') use (&$tpl)
 };
 
 // set defaults
+$help		??= 0;
 $lang		??= $this->page['page_lang'];
 $nomark		??= 0;
 $owner		??= '';
 $page		??= '/';
 $sort		??= 'abc';
+
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
 
 $tag = $this->unwrap_link($page);
 
@@ -76,26 +89,26 @@ $order = match($sort) {
 	default		=> 'c.category ASC',
 };
 
-$sql = "SELECT
+$sql = 'SELECT
 			c.category_id,
 			c.category_lang,
 			c.category,
 			COUNT(c.category_id) AS number
 		FROM
-			" . $this->prefix . "category c
-			INNER JOIN " . $this->prefix . "category_assignment ca ON (c.category_id = ca.category_id)
-			INNER JOIN " . $this->prefix . "page p ON (ca.object_id = p.page_id) " .
+			' . $this->prefix . 'category c
+			INNER JOIN ' . $this->prefix . 'category_assignment ca ON (c.category_id = ca.category_id)
+			INNER JOIN ' . $this->prefix . 'page p ON (ca.object_id = p.page_id) ' .
 			($owner
-				? "INNER JOIN " . $this->prefix . "user u ON (p.user_id = u.user_id) "
+				? 'INNER JOIN ' . $this->prefix . 'user u ON (p.user_id = u.user_id) '
 				: '' ) .
-		"WHERE c.category_lang = " . $this->db->q($lang) . " " .
-			"AND ca.object_type_id = 1 " .
-			"AND p.deleted <> 1 " .
+		'WHERE c.category_lang = ' . $this->db->q($lang) . ' ' .
+			'AND ca.object_type_id = 1 ' .
+			'AND p.deleted <> 1 ' .
 			($tag
-				? "AND ( p.tag = " . $this->db->q($tag) . " OR p.tag LIKE " . $this->db->q($tag . '/%') . " ) "
+				? 'AND ( p.tag = ' . $this->db->q($tag) . ' OR p.tag LIKE ' . $this->db->q($tag . '/%') . ' ) '
 				: '' ) .
 			($owner
-				? "AND u.user_name = " . $this->db->q($owner) . " "
+				? 'AND u.user_name = ' . $this->db->q($owner) . ' '
 				: '' ) .
 		"GROUP BY
 			c.category, c.category_id, c.category_lang

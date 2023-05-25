@@ -5,14 +5,19 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
-/*
- shows pages that do not yet exist and are linked to
+$info = <<<EOD
+Description:
+	Shows pages that do not yet exist and are linked to for some cluster.
 
-	{{wanted
-		[page="cluster"]
-		[max=Number]
-	}}
-*/
+	By default it is equal to the current page. To display it for all namespaces, use root page="/".
+
+Usage:
+	{{wanted}}
+
+Options:
+	[page="Cluster"]
+	[max=Number]
+EOD;
 
 $load_wanted = function ($cluster, $limit)
 {
@@ -20,30 +25,30 @@ $load_wanted = function ($cluster, $limit)
 	$pref		= $this->prefix;
 
 	$selector =
-		"SELECT DISTINCT l.to_tag AS wanted_tag " .
-			"FROM " . $pref . "page_link l " .
-				"LEFT JOIN " . $pref . "page p ON " .
-				"((l.to_tag = p.tag " .
-					"AND l.to_page_id <> 0)) " .
-			"WHERE " .
+		'SELECT DISTINCT l.to_tag AS wanted_tag ' .
+			'FROM ' . $pref . 'page_link l ' .
+				'LEFT JOIN ' . $pref . 'page p ON ' .
+					'((l.to_tag = p.tag ' .
+						'AND l.to_page_id <> 0)) ' .
+			'WHERE ' .
 				($cluster
-					? "l.to_tag LIKE " . $this->db->q($cluster . '/%') . " AND "
-					: "") .
-				"p.tag is NULL GROUP BY wanted_tag ";
+					? 'l.to_tag LIKE ' . $this->db->q($cluster . '/%') . ' AND '
+					: '') .
+				'p.tag is NULL GROUP BY wanted_tag ';
 
 	// count pages
 	if ($count = $this->db->load_single(
-		"SELECT COUNT(*) AS n
-		FROM ( " .
+		'SELECT COUNT(*) AS n
+		FROM ( ' .
 			$selector .
-		") AS src"
+		') AS src'
 		, true))
 	{
 		$pagination = $this->pagination($count['n'], $limit);
 
 		$wanted = $this->db->load_all(
 				$selector .
-				"ORDER BY wanted_tag ASC " .
+				'ORDER BY wanted_tag ASC ' .
 				$pagination['limit']);
 
 		return [$wanted, $pagination];
@@ -51,8 +56,15 @@ $load_wanted = function ($cluster, $limit)
 };
 
 // set defaults
+$help	??= 0;
 $page	??= '';
 $max	??= null;
+
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
 
 $tag	= $this->unwrap_link($page);
 

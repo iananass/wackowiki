@@ -5,37 +5,51 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
+$info = <<<EOD
+Description:
+	Outputs a list of lost pages (those pages that do not have any links to them) for some cluster.
+
+	By default it is equal to the current page. To display it for all namespaces, use root page="/".
+
+Usage:
+	{{orphaned}}
+
+Options:
+	[page="Cluster"]
+	[max=Number]
+EOD;
+
 $load_orphaned_pages = function ($tag, $limit, $deleted = false)
 {
 	$pagination	= [];
 	$pref		= $this->prefix;
 
 	$selector =
-		"FROM " . $pref . "page p " .
-			"LEFT JOIN " . $pref . "page_link l ON " .
-			"(l.to_tag = p.tag) " .
-		"WHERE " .
+		'FROM ' . $pref . 'page p ' .
+			'LEFT JOIN ' . $pref . 'page_link l ON ' .
+			'(l.to_tag = p.tag) ' .
+		'WHERE ' .
 			($tag
-				? "p.tag LIKE " . $this->db->q($tag . '/%') . " AND "
-				: "") .
-			"l.to_page_id IS NULL " .
+				? 'p.tag LIKE ' . $this->db->q($tag . '/%') . ' AND '
+				: '') .
+			'l.to_page_id IS NULL ' .
 			($deleted
-				? ""
-				: "AND p.deleted <> 1 ") .
-			"AND p.comment_on_id = 0 ";
+				? ''
+				: 'AND p.deleted <> 1 ') .
+			'AND p.comment_on_id = 0 ';
 
 	// count pages
 	if ($count = $this->db->load_single(
-		"SELECT DISTINCT COUNT(page_id) AS n " .
+		'SELECT DISTINCT COUNT(page_id) AS n ' .
 		$selector
 		, true))
 	{
 		$pagination = $this->pagination($count['n'], $limit);
 
 		$orphaned = $this->db->load_all(
-			"SELECT DISTINCT page_id, owner_id, tag, title " .
+			'SELECT DISTINCT page_id, owner_id, tag, title ' .
 			$selector .
-			"ORDER BY tag COLLATE utf8mb4_unicode_520_ci " .
+			'ORDER BY tag COLLATE utf8mb4_unicode_520_ci ' .
 			$pagination['limit']);
 
 		return [$orphaned, $pagination];
@@ -43,8 +57,15 @@ $load_orphaned_pages = function ($tag, $limit, $deleted = false)
 };
 
 // set defaults
+$help	??= 0;
 $max	??= null;
 $page	??= '';
+
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
 
 $tag	= $page ? $this->unwrap_link($page) : $this->tag;
 

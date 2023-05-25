@@ -5,17 +5,22 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
-/* USAGE:
-	{{news
-		[page="cluster"]
-		[mode="latest|week|from"]
-		[date="YYYY-MM-DD"]
-		[order="time|tag"]
-		[max=Number]
-		[title=1]
-		[noxml=1]
-	}}
-*/
+$info = <<<EOD
+Description:
+	Creates a news feed in a predefined news cluster.
+
+Usage:
+	{{news}}
+
+Options:
+	[page="cluster"]
+	[mode="latest|week|from"]
+	[date="YYYY-MM-DD"]
+	[order="time|tag"]
+	[max=Number]
+	[title=1]
+	[noxml=1]
+EOD;
 
 if (!empty($this->db->news_cluster))
 {
@@ -27,11 +32,18 @@ if (!empty($this->db->news_cluster))
 
 	// set defaults
 	$date				??= $_GET['date'] ?? '';
+	$help				??= 0;
 	$max				??= 10;
 	$mode				??= 'latest';
 	$noxml				??= 0;
 	$order				??= '';
 	$title				??= 1;
+	
+	if ($help)
+	{
+		$tpl->help	= $this->action('help', ['info' => $info]);
+		return;
+	}
 
 	$pages				= [];
 	$p_mode				= [];
@@ -105,16 +117,16 @@ if (!empty($this->db->news_cluster))
 	// collect data
 	// heavy lifting here (watch out for REGEXPs!)
 	$select_count =
-		"SELECT COUNT(p.page_id) AS n " .
+		'SELECT COUNT(p.page_id) AS n ' .
 		"FROM {$prefix}page p ";
 
 	$select_mode =
-		"SELECT p.page_id, p.owner_id, p.user_id, p.tag, p.title, p.created, p.comments, u.user_name AS owner " .
+		'SELECT p.page_id, p.owner_id, p.user_id, p.tag, p.title, p.created, p.comments, u.user_name AS owner ' .
 		"FROM {$prefix}page p " .
 			"INNER JOIN {$prefix}user u ON (p.owner_id = u.user_id) ";
 
 	$order_by_mode =
-		"ORDER BY " . $order_by . " ";
+		'ORDER BY ' . $order_by . ' ';
 
 	if ($mode == 'latest')
 	{
@@ -122,8 +134,8 @@ if (!empty($this->db->news_cluster))
 
 		$selector =
 			"WHERE p.tag REGEXP '^{$news_cluster}{$news_levels}$' " .
-				"AND p.comment_on_id = 0 " .
-				"AND p.deleted <> 1 ";
+				'AND p.comment_on_id = 0 ' .
+				'AND p.deleted <> 1 ';
 
 		$sql_count	=
 			$select_count .
@@ -141,10 +153,10 @@ if (!empty($this->db->news_cluster))
 		$selector =
 				"INNER JOIN {$prefix}category_assignment c ON (c.object_id = p.page_id) " .
 			"WHERE p.tag REGEXP '^{$news_cluster}{$news_levels}$' " .
-				"AND c.category_id = " . (int) $category_id . " " .
-				"AND c.object_type_id = 1 " .
-				"AND p.comment_on_id = 0 " .
-				"AND p.deleted <> 1 ";
+				'AND c.category_id = ' . (int) $category_id . ' ' .
+				'AND c.object_type_id = 1 ' .
+				'AND p.comment_on_id = 0 ' .
+				'AND p.deleted <> 1 ';
 
 		$sql_count	=
 			$select_count .
@@ -156,9 +168,9 @@ if (!empty($this->db->news_cluster))
 			$order_by_mode;
 
 		$category_title	= $this->db->load_single(
-			"SELECT category " .
+			'SELECT category ' .
 			"FROM {$prefix}category " .
-			"WHERE category_id = " . (int) $category_id . " ", false);
+			'WHERE category_id = ' . (int) $category_id . ' ', false);
 	}
 	else if ($mode == 'week')
 	{
@@ -166,9 +178,9 @@ if (!empty($this->db->news_cluster))
 
 		$selector =
 			"WHERE p.tag REGEXP '^{$news_cluster}{$news_levels}$' " .
-				"AND p.created > DATE_SUB( UTC_TIMESTAMP(), INTERVAL 7 DAY ) " .
-				"AND p.comment_on_id = 0 " .
-				"AND p.deleted <> 1 ";
+				'AND p.created > DATE_SUB( UTC_TIMESTAMP(), INTERVAL 7 DAY ) ' .
+				'AND p.comment_on_id = 0 ' .
+				'AND p.deleted <> 1 ';
 
 		$sql_count	=
 			$select_count .
@@ -186,9 +198,9 @@ if (!empty($this->db->news_cluster))
 
 		$selector =
 			"WHERE p.tag REGEXP '^{$news_cluster}{$news_levels}$' " .
-				"AND p.created > " . $this->db->q($date) . " " .
-				"AND p.comment_on_id = 0 " .
-				"AND p.deleted <> 1 ";
+				'AND p.created > ' . $this->db->q($date) . ' ' .
+				'AND p.comment_on_id = 0 ' .
+				'AND p.deleted <> 1 ';
 
 		$sql_count	=
 			$select_count .

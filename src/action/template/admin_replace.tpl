@@ -1,4 +1,5 @@
 [ === main === ]
+	[ ' help ' ]
 	<h2>[ ' _t: ReplaceText ' ]</h2>
 	[ ' message ' ]<br>
 	[= search _ =

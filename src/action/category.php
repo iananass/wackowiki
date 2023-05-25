@@ -5,6 +5,23 @@ if (!defined('IN_WACKO'))
 	exit;
 }
 
+$info = <<<EOD
+Description:
+	Shows a list of used categories and pages assigned to a selected category.
+
+Usage:
+	{{category}}
+
+Options:
+	[page="cluster"]	- where to start counting from (defaults to current tag)
+	[list=0]			- make categories clickable links which display pages of a given category (1 (default) or 0)
+	[ids="1,2,3"]		- display pages which belong to these comma-separated categories ids (default none)
+	[lang="fr"]			- categories language if necessary (defaults to current page lang)
+	[sort="abc|date"]	- order pages alphabetically ('abc', default) or creation date ('date')
+	[nomark=1]			- display header and fieldset (1, 2 (no header even in 'categories' mode) or 0 (default))
+	[info=0|1]			- display category description
+EOD;
+
 $category_link = function ($word, $category_id, $type_id, $list, $cluster = '', $filter = [])
 {
 	$selected = (in_array($category_id, $filter));
@@ -27,18 +44,6 @@ $category_link = function ($word, $category_id, $type_id, $list, $cluster = '', 
 				: '');
 };
 
-/* USAGE:
-	{{category
-		[page="cluster"]	- where to start counting from (defaults to current tag)
-		[list=0]			- make categories clickable links which display pages of a given category (1 (default) or 0)
-		[ids="1,2,3"]		- display pages which belong to these comma-separated categories ids (default none)
-		[lang="fr"]			- categories language if necessary (defaults to current page lang)
-		[sort="abc|date"]	- order pages alphabetically ('abc', default) or creation date ('date')
-		[nomark=1]			- display header and fieldset (1, 2 (no header even in 'categories' mode) or 0 (default))
-		[info=0|1]			- display category description
-	}}
-*/
-
 // set defaults
 $ids		??= null;
 $info		??= 0;
@@ -48,6 +53,12 @@ $nomark		??= 0;
 $page		??= '/';
 $sort		??= 'abc';
 $type_id	??= OBJECT_PAGE;
+
+if ($help)
+{
+	$tpl->help	= $this->action('help', ['info' => $info]);
+	return;
+}
 
 if (isset($_REQUEST['category_lang']))
 {
@@ -86,9 +97,9 @@ if ($list && ($ids || isset($_GET['category_id'])))
 	}
 
 	$_words = $this->db->load_all(
-		"SELECT category, category_lang " .
-		"FROM " . $this->prefix . "category " .
-		"WHERE category_id IN (" . $this->ids_string($category_ids) . ")", true);
+		'SELECT category, category_lang ' .
+		'FROM ' . $this->prefix . 'category ' .
+		'WHERE category_id IN (' . $this->ids_string($category_ids) . ')', true);
 
 	if ($nomark != 2)
 	{
@@ -123,22 +134,22 @@ if ($list && ($ids || isset($_GET['category_id'])))
 
 	// get category assignments
 	if ($pages = $this->db->load_all(
-		"SELECT p.page_id, p.tag, p.title, p.created, p.page_lang " .
-		"FROM " . $this->prefix . "category_assignment AS k " .
-			"INNER JOIN " . $this->prefix . "page AS p ON (k.object_id = p.page_id) " .
-		"WHERE k.category_id IN (" . $this->ids_string($category_ids) . ") " .
-			"AND k.object_type_id = 1 " .
-			"AND p.deleted <> 1 " .
+		'SELECT p.page_id, p.tag, p.title, p.created, p.page_lang ' .
+		'FROM ' . $this->prefix . 'category_assignment AS k ' .
+			'INNER JOIN ' . $this->prefix . 'page AS p ON (k.object_id = p.page_id) ' .
+		'WHERE k.category_id IN (' . $this->ids_string($category_ids) . ') ' .
+			'AND k.object_type_id = 1 ' .
+			'AND p.deleted <> 1 ' .
 			(($tag && $type_id = OBJECT_PAGE)
-				? "AND (p.tag = " . $this->db->q($tag) . " " .
-					"OR p.tag LIKE " . $this->db->q($tag . '/%') . ") "
+				? 'AND (p.tag = ' . $this->db->q($tag) . ' ' .
+					'OR p.tag LIKE ' . $this->db->q($tag . '/%') . ') '
 				: '') .
 		"ORDER BY p.{$order} ", true))
 	{
 		if ($_words = $this->db->load_all(
-			"SELECT category, category_description, category_lang " .
-			"FROM " . $this->prefix . "category " .
-			"WHERE category_id IN (" . $this->ids_string($category_ids) . ")", true))
+			'SELECT category, category_description, category_lang ' .
+			'FROM ' . $this->prefix . 'category ' .
+			'WHERE category_id IN (' . $this->ids_string($category_ids) . ')', true))
 		{
 			if ($info)
 			{
